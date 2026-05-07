@@ -1,0 +1,62 @@
+groups:
+  - name: financial-api
+    rules:
+      - alert: FinancialCoreHigh5xxRate
+        expr: sum(rate(http_requests_total{status=~"5.."}[5m])) > 0
+        for: 5m
+        labels:
+          severity: warning
+          domain: http
+        annotations:
+          summary: FinancialAPI retornando erros 5xx.
+          description: Existe erro 5xx sustentado na API por mais de 5 minutos.
+
+      - alert: FinancialCoreHighLatencyP95
+        expr: max(http_request_duration_seconds_p95) > 1
+        for: 10m
+        labels:
+          severity: warning
+          domain: http
+        annotations:
+          summary: P95 HTTP acima de 1 segundo.
+          description: Latência alta em rota crítica da API financeira.
+
+      - alert: FinancialCoreIdempotencyConflictSpike
+        expr: increase(idempotency_conflicts_total[10m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+          domain: idempotency
+        annotations:
+          summary: Pico de conflitos de idempotência.
+          description: Clientes podem estar reutilizando chaves com payloads diferentes.
+
+      - alert: FinancialCoreWebhookFailures
+        expr: increase(financial_domain_events_total{domain="webhooks",event=~"failed|dead_letter"}[10m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          domain: webhooks
+        annotations:
+          summary: Webhook com falha ou dead-letter.
+          description: Entregas externas precisam de investigação operacional.
+
+      - alert: FinancialCoreOutboxFailures
+        expr: increase(financial_domain_events_total{domain="outbox",event="failed"}[10m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          domain: outbox
+        annotations:
+          summary: Outbox falhando ao publicar eventos.
+          description: Eventos financeiros podem estar presos antes do RabbitMQ/webhook.
+
+      - alert: FinancialCoreScoringUnavailable
+        expr: increase(financial_domain_events_total{domain="scoring",event=~"failed_closed|transient_retry"}[10m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          domain: scoring
+        annotations:
+          summary: Scoring de crédito indisponível ou instável.
+          description: Lending pode estar reprovando por falha fechada ou sofrendo retries.

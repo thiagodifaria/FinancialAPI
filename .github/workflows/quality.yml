@@ -1,0 +1,79 @@
+name: Quality Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: service-api/service-typescript/package-lock.json
+          
+      - name: Install Core Dependencies
+        working-directory: service-api/service-typescript
+        run: npm ci
+        
+      - name: Run Lint
+        working-directory: service-api/service-typescript
+        run: npm run lint
+        
+      - name: Check Format
+        working-directory: service-api/service-typescript
+        run: npm run format:check
+        
+      - name: Run Tests
+        working-directory: service-api/service-typescript
+        run: npm test
+
+      - name: Build Core
+        working-directory: service-api/service-typescript
+        run: npm run build
+
+      - name: Secret Scan
+        run: ./scripts/secret-scan.sh
+
+      - name: SQL Lint
+        run: ./scripts/sql-lint.sh
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Scoring Dependencies
+        run: pip install -r service-api/service-python/requirements.txt
+
+      - name: Check Proto Stubs
+        run: python service-api/service-python/scripts/check_grpc_generated.py
+
+      - name: Run Python Quality
+        working-directory: service-api/service-python
+        run: |
+          ruff check .
+          mypy src tests
+          pytest
+
+      - name: Install Client Web Dependencies
+        working-directory: client-web
+        run: npm ci
+
+      - name: Build Client Web
+        working-directory: client-web
+        run: |
+          npm run typecheck
+          npm run build
+
+      - name: Docker Compose Config
+        working-directory: infra
+        run: docker compose config

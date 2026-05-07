@@ -1,0 +1,121 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "legend": { "showLegend": true } },
+      "targets": [{ "expr": "sum(rate(http_requests_total[5m])) by (route)", "refId": "A" }],
+      "title": "Request Rate Por Rota",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 0 },
+      "id": 2,
+      "targets": [{ "expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) by (route)", "refId": "A" }],
+      "title": "Error Rate 5xx",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 0 },
+      "id": 3,
+      "targets": [{ "expr": "http_request_duration_seconds_p95", "refId": "A" }],
+      "title": "P95 HTTP",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 7 },
+      "id": 4,
+      "targets": [{ "expr": "ledger_postings_total", "refId": "A" }],
+      "title": "Ledger Postings",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 7 },
+      "id": 5,
+      "targets": [{ "expr": "idempotency_conflicts_total", "refId": "A" }],
+      "title": "Idempotency Conflicts",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 7 },
+      "id": 6,
+      "targets": [{ "expr": "up{job=\"financial_api\"}", "refId": "A" }],
+      "title": "API Scrape Health",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 13 },
+      "id": 7,
+      "targets": [
+        { "expr": "sum(rate(financial_domain_events_total[5m])) by (domain, event)", "refId": "A" }
+      ],
+      "title": "Eventos Por Domínio",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 13 },
+      "id": 8,
+      "targets": [{ "expr": "reconciliation_state", "refId": "A" }],
+      "title": "Estado Da Conciliação",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 20 },
+      "id": 9,
+      "targets": [{ "expr": "idempotency_replays_total", "refId": "A" }],
+      "title": "Idempotency Replays",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 20 },
+      "id": 10,
+      "targets": [{ "expr": "idempotency_cached_success_total", "refId": "A" }],
+      "title": "Idempotency Cached Success",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 20 },
+      "id": 11,
+      "targets": [
+        {
+          "expr": "sum(increase(financial_domain_events_total{domain=\"lending\"}[1h]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Lending Events 1h",
+      "type": "stat"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["fintech", "ledger", "observability"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "timezone": "",
+  "title": "FinancialAPI Operations",
+  "uid": "financial-api-ops",
+  "version": 2
+}

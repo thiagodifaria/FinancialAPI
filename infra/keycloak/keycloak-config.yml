@@ -1,0 +1,8 @@
+# Configuração placeholder para o Keycloak
+realm: financial-realm
+client: core-engine
+auth-server-url: http://keycloak:8080/auth
+ssl-required: external
+resource: core-engine
+credentials:
+  secret: financial-secret

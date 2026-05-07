@@ -1,0 +1,140 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: ledger_db
+    environment:
+      POSTGRES_USER: ledger_admin
+      POSTGRES_PASSWORD: financial_grade_password
+      POSTGRES_DB: financial_api
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_pg17:/var/lib/postgresql/data
+      - ../service-api/service-postgresql/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ../service-api/service-postgresql/migrations:/docker-entrypoint-initdb.d
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    networks:
+      - financial-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: ledger_cache
+    ports:
+      - "6379:6379"
+    networks:
+      - financial-net
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: ledger_events
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+    networks:
+      - financial-net
+
+  core-engine:
+    build: 
+      context: ../service-api
+      dockerfile: service-typescript/Dockerfile
+    container_name: financial_api
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=financial_api
+      - DB_USER=ledger_runtime
+      - DB_PASSWORD=ledger_runtime_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBITMQ_HOST=rabbitmq
+      - SCORING_ENGINE_HOST=scoring-engine
+      - SCORING_ENGINE_PORT=50052
+      - LOAN_FUNDING_ACCOUNT_ID=0194fd70-0000-7000-8000-000000000101
+      - LOG_LEVEL=info
+      - WEB_CONCURRENCY=2
+      - OTEL_ENABLED=true
+      - OTEL_SERVICE_NAME=financial-api
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
+      - OTEL_TRACES_EXPORTER=otlp
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_started
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      scoring-engine:
+        condition: service_healthy
+    networks:
+      - financial-net
+
+  scoring-engine:
+    build: 
+      context: ../service-api
+      dockerfile: service-python/Dockerfile
+    container_name: financial_scoring_engine
+    environment:
+      - CORE_ENGINE_HOST=core-engine
+      - SCORING_POLICY_VERSION=credit-policy-v1
+      - LOG_LEVEL=INFO
+    ports:
+      - "50052:50052"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import grpc; from grpc_health.v1 import health_pb2, health_pb2_grpc; channel = grpc.insecure_channel('localhost:50052'); response = health_pb2_grpc.HealthStub(channel).Check(health_pb2.HealthCheckRequest(), timeout=3); raise SystemExit(0 if response.status == health_pb2.HealthCheckResponse.SERVING else 1)\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - financial-net
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: financial_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9090/-/healthy || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - financial-net
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    container_name: financial_grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - ./grafana/dashboard.json:/var/lib/grafana/dashboards/financial-api.json:ro
+    environment:
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/financial-api.json
+    depends_on:
+      - prometheus
+    networks:
+      - financial-net
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.63.0
+    container_name: financial_jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+    networks:
+      - financial-net
+
+networks:
+  financial-net:
+    driver: bridge
+
+volumes:
+  postgres_data_pg17:

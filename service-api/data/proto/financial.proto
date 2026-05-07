@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package financial_api.scoring.v1;
+
+// Serviço de decisão de crédito usado pelo core de lending.
+service CreditScoring {
+  // Analisa uma proposta e retorna decisão determinística/auditável.
+  rpc AnalyzeRisk (RiskAnalysisRequest) returns (RiskAnalysisResponse);
+}
+
+message RequestMetadata {
+  string request_id = 1;
+  string tenant_id = 2;
+  string idempotency_key = 3;
+  string caller_service = 4;
+}
+
+message RiskAnalysisRequest {
+  RequestMetadata metadata = 1;
+  string tenant_id = 2;
+  string account_id = 3;
+  int64 requested_amount = 4;
+  string user_profile_data = 5; // JSON string com dados extras.
+}
+
+message DecisionReason {
+  string code = 1;
+  string message = 2;
+  float impact = 3;
+}
+
+message DomainError {
+  string code = 1;
+  string message = 2;
+  string field = 3;
+}
+
+message RiskAnalysisResponse {
+  float score = 1; // 0.0 a 1.0.
+  bool approved = 2;
+  int64 maximum_limit = 3;
+  string reason = 4;
+  string policy_version = 5;
+  repeated DecisionReason reasons = 6;
+  repeated DomainError errors = 7;
+}

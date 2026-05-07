@@ -1,0 +1,32 @@
+name: Build and Push Containers
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Build Core Engine
+        uses: docker/build-push-action@v5
+        with:
+          context: ./service-api
+          file: ./service-api/service-typescript/Dockerfile
+          push: false # Seria true em produção com login no DockerHub/GHCR
+          tags: financial-core-engine:latest
+          
+      - name: Build Scoring Engine
+        uses: docker/build-push-action@v5
+        with:
+          context: ./service-api
+          file: ./service-api/service-python/Dockerfile
+          push: false
+          tags: financial-scoring-engine:latest

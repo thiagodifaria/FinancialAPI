@@ -1,0 +1,9 @@
+service-typescript/node_modules/
+service-typescript/dist/
+service-typescript/coverage/
+service-python/**/__pycache__/
+service-python/**/*.pyc
+service-python/src/models/*.pkl
+.git/
+.env
+*.log
