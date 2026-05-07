@@ -20,7 +20,7 @@ startTelemetry();
  */
 async function startServer() {
   if (cluster.isPrimary) {
-    logger.info({ pid: process.pid }, '[FINANCIAL_CORE] Processo principal rodando');
+    logger.info({ pid: process.pid }, '[FinancialAPI] Processo principal rodando');
 
     if (process.env.RUN_MIGRATIONS === 'true') {
       await runMigrations();

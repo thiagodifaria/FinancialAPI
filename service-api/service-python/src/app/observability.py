@@ -9,7 +9,7 @@ from prometheus_client import Counter, Gauge, Histogram, start_http_server
 
 from app.config import Settings
 
-logger = logging.getLogger("zins-scoring-engine")
+logger = logging.getLogger("financial-api-scoring")
 
 DECISIONS_TOTAL = Counter(
     "scoring_decisions_total",
@@ -42,7 +42,7 @@ def configure_observability(settings: Settings) -> None:
         provider = TracerProvider(
             resource=Resource.create(
                 {
-                    "service.name": "zins-scoring-engine",
+                    "service.name": "financial-api-scoring",
                     "deployment.environment": settings.environment,
                 }
             )
@@ -62,7 +62,7 @@ def record_error(code: str) -> None:
 
 @contextmanager
 def scoring_span(name: str, **attributes: str) -> Iterator[None]:
-    tracer = trace.get_tracer("zins-scoring-engine")
+    tracer = trace.get_tracer("financial-api-scoring")
     with tracer.start_as_current_span(name) as span:
         for key, value in attributes.items():
             span.set_attribute(key, value)

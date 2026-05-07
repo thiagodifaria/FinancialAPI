@@ -9,6 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 function postgresOptions(): postgres.Options<Record<string, postgres.PostgresType>> {
   const options: postgres.Options<Record<string, postgres.PostgresType>> = {
     max: Number(process.env.DB_POOL_MAX) || 10,
+    prepare: process.env.DB_PREPARE === 'true',
   };
 
   if (process.env.DB_SSL === 'true' || process.env.DATABASE_URL?.includes('sslmode=require')) {

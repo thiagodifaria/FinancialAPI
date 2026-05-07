@@ -8,7 +8,7 @@ from app.scoring.policy import CreditPolicyEngine
 
 from .generated import financial_pb2, financial_pb2_grpc
 
-logger = logging.getLogger("zins-scoring-engine")
+logger = logging.getLogger("financial-api-scoring")
 
 
 class CreditScoringService(financial_pb2_grpc.CreditScoringServicer):  # type: ignore[misc]

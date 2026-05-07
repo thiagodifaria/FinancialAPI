@@ -36,7 +36,7 @@ def create_server() -> Any:
 def serve() -> None:
     settings = load_settings()
     server = create_server()
-    logging.getLogger("zins-scoring-engine").info(
+    logging.getLogger("financial-api-scoring").info(
         "Scoring Engine rodando", extra={"policy_version": settings.policy_version}
     )
     server.start()

@@ -1,5 +1,5 @@
 [project]
-name = "zins-scoring-engine"
+name = "financial-api-scoring"
 version = "1.0.0"
 description = "Motor gRPC de decisão de crédito para o FinancialAPI."
 requires-python = ">=3.11"
