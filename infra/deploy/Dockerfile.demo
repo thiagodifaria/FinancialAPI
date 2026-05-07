@@ -1,0 +1,53 @@
+FROM node:24-bookworm-slim AS typescript-builder
+
+WORKDIR /build/service-api
+
+COPY service-api/service-typescript/package*.json ./service-typescript/
+RUN cd service-typescript && npm ci
+
+COPY service-api/data ./data
+COPY service-api/service-typescript ./service-typescript
+RUN cd service-typescript && npm run build
+
+FROM node:24-bookworm-slim
+
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PYTHONPATH=/app/scoring/src
+ENV SCORING_HOST=127.0.0.1
+ENV SCORING_PORT=50052
+ENV SCORING_ENGINE_HOST=127.0.0.1
+ENV SCORING_ENGINE_PORT=50052
+ENV MIGRATIONS_PATH=/app/service-postgresql/migrations
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends python3 python3-venv python3-pip ca-certificates curl \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY --from=typescript-builder /build/service-api/service-typescript/package*.json ./api/
+COPY --from=typescript-builder /build/service-api/service-typescript/node_modules ./api/node_modules
+COPY --from=typescript-builder /build/service-api/service-typescript/dist ./api/dist
+COPY --from=typescript-builder /build/service-api/data/proto ./api/proto
+
+COPY service-api/service-python/requirements.txt ./scoring/requirements.txt
+RUN python3 -m venv /opt/scoring-venv \
+  && /opt/scoring-venv/bin/pip install --no-cache-dir -r ./scoring/requirements.txt
+
+COPY service-api/service-python/pyproject.toml ./scoring/pyproject.toml
+COPY service-api/service-python/src ./scoring/src
+COPY service-api/data/proto ./scoring/proto
+COPY service-api/service-postgresql/migrations ./service-postgresql/migrations
+COPY scripts/start-demo-backend.sh ./start-demo-backend.sh
+
+RUN mkdir -p ./scoring/src/app/grpc/generated \
+  && /opt/scoring-venv/bin/python -m grpc_tools.protoc -I./scoring/proto \
+    --python_out=./scoring/src/app/grpc/generated \
+    --grpc_python_out=./scoring/src/app/grpc/generated \
+    ./scoring/proto/financial.proto \
+  && touch ./scoring/src/app/grpc/generated/__init__.py \
+  && sed -i 's/^import financial_pb2/from . import financial_pb2/' ./scoring/src/app/grpc/generated/financial_pb2_grpc.py \
+  && chmod +x ./start-demo-backend.sh
+
+EXPOSE 5000
+
+CMD ["./start-demo-backend.sh"]

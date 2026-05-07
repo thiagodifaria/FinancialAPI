@@ -1,0 +1,13 @@
+.cache
+.git
+.github
+.venv
+client-web/dist
+client-web/node_modules
+service-api/service-typescript/dist
+service-api/service-typescript/node_modules
+service-api/service-python/.pytest_cache
+infra/grafana/data
+infra/prometheus/data
+**/.DS_Store
+**/*.log

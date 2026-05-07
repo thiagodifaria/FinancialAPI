@@ -21,7 +21,8 @@
 **API Reference:** [docs/API.md](docs/API.md)  
 **Architecture Reference:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)  
 **Observability Reference:** [docs/OBSERVABILITY.md](docs/OBSERVABILITY.md)  
-**Local Guide:** [docs/GUIDE.md](docs/GUIDE.md)
+**Local Guide:** [docs/GUIDE.md](docs/GUIDE.md)  
+**Free Demo Deployment:** [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 
 ---
 

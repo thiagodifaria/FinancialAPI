@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: financial-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./infra/deploy/Dockerfile.demo
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: info
+      - key: PORT
+        value: 5000
+      - key: WEB_CONCURRENCY
+        value: 1
+      - key: RUN_MIGRATIONS
+        value: true
+      - key: DB_SSL
+        value: true
+      - key: DB_POOL_MAX
+        value: 5
+      - key: REDIS_TLS
+        value: true
+      - key: OUTBOX_PUBLISHER_ENABLED
+        value: true
+      - key: SCORING_ENGINE_HOST
+        value: 127.0.0.1
+      - key: SCORING_ENGINE_PORT
+        value: 50052
+      - key: SCORING_FAILURE_POLICY
+        value: closed
+      - key: OTEL_ENABLED
+        value: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: RABBITMQ_URL
+        sync: false

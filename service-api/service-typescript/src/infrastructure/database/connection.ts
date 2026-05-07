@@ -6,15 +6,29 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Configuração central da conexão com o PostgreSQL
-const sql = postgres({
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT) || 5432,
-  database: process.env.DB_NAME || 'financial_api',
-  username: process.env.DB_USER || 'ledger_runtime',
-  password: process.env.DB_PASSWORD || 'ledger_runtime_password',
-  max: Number(process.env.DB_POOL_MAX) || 10,
-});
+function postgresOptions(): postgres.Options<Record<string, postgres.PostgresType>> {
+  const options: postgres.Options<Record<string, postgres.PostgresType>> = {
+    max: Number(process.env.DB_POOL_MAX) || 10,
+  };
+
+  if (process.env.DB_SSL === 'true' || process.env.DATABASE_URL?.includes('sslmode=require')) {
+    options.ssl = 'require';
+  }
+
+  return options;
+}
+
+// Configuração central da conexão com o PostgreSQL.
+const sql = process.env.DATABASE_URL
+  ? postgres(process.env.DATABASE_URL, postgresOptions())
+  : postgres({
+      host: process.env.DB_HOST || 'localhost',
+      port: Number(process.env.DB_PORT) || 5432,
+      database: process.env.DB_NAME || 'financial_api',
+      username: process.env.DB_USER || 'ledger_runtime',
+      password: process.env.DB_PASSWORD || 'ledger_runtime_password',
+      ...postgresOptions(),
+    });
 
 export type SqlExecutor = postgres.Sql | postgres.TransactionSql;
 
@@ -23,7 +37,7 @@ export type SqlExecutor = postgres.Sql | postgres.TransactionSql;
  * Deve ser usado apenas em desenvolvimento local ou por um job com credenciais de migration.
  */
 export async function runMigrations() {
-  const migrationsPath = path.resolve(__dirname, '../../../../service-postgresql/migrations');
+  const migrationsPath = resolveMigrationsPath();
   await sql`
     CREATE TABLE IF NOT EXISTS schema_migrations (
       version TEXT PRIMARY KEY,
@@ -63,6 +77,19 @@ export async function runMigrations() {
       `;
     });
   }
+}
+
+function resolveMigrationsPath(): string {
+  const candidates = [
+    process.env.MIGRATIONS_PATH,
+    path.resolve(__dirname, '../../../../service-postgresql/migrations'),
+    path.resolve(process.cwd(), 'service-postgresql/migrations'),
+    path.resolve(process.cwd(), 'migrations'),
+  ].filter((candidate): candidate is string => Boolean(candidate));
+
+  const found = candidates.find((candidate) => fs.existsSync(candidate));
+  if (!found) throw new Error('Diretório de migrations não encontrado');
+  return found;
 }
 
 export async function checkDatabase(): Promise<void> {

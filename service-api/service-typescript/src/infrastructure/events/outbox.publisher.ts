@@ -41,8 +41,8 @@ export function stopOutboxPublisher(): void {
 }
 
 async function publishPendingOutboxEvents(): Promise<void> {
-  const host = process.env.RABBITMQ_HOST ?? 'localhost';
-  const connection = await amqp.connect(`amqp://${host}:5672`);
+  const connectionUrl = process.env.RABBITMQ_URL ?? `amqp://${process.env.RABBITMQ_HOST ?? 'localhost'}:5672`;
+  const connection = await amqp.connect(connectionUrl);
   const channel = await connection.createChannel();
 
   try {
