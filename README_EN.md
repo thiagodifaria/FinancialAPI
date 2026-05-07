@@ -21,8 +21,41 @@
 **API Reference:** [docs/API.md](docs/API.md)  
 **Architecture Reference:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)  
 **Observability Reference:** [docs/OBSERVABILITY.md](docs/OBSERVABILITY.md)  
-**Local Guide:** [docs/GUIDE.md](docs/GUIDE.md)  
-**Free Demo Deployment:** [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+**Local Guide:** [docs/GUIDE.md](docs/GUIDE.md)
+
+---
+
+## Live Demo
+
+**Application:** [https://thiagodifariafinancialapi.netlify.app/](https://thiagodifariafinancialapi.netlify.app/)  
+**Backend health:** [https://financial-api-rh7u.onrender.com/health](https://financial-api-rh7u.onrender.com/health)  
+**OpenAPI JSON:** [https://financial-api-rh7u.onrender.com/openapi.json](https://financial-api-rh7u.onrender.com/openapi.json)
+
+Development credentials available in the public demo:
+
+```text
+x-api-key: dev-api-key
+email: admin@example.com
+password: dev-password
+```
+
+The public demo combines the Netlify-hosted `client-web` with the Render-hosted backend. Because it uses free infrastructure, the first request after an idle period can take a few seconds while the backend wakes up.
+
+---
+
+## Screenshots
+
+### Home
+
+![FinancialAPI home](client-web/public/images/screenshots/home.png)
+
+### Documentation
+
+![FinancialAPI documentation](client-web/public/images/screenshots/docs.png)
+
+### API Explorer
+
+![FinancialAPI API Explorer](client-web/public/images/screenshots/api.png)
 
 ---
 
